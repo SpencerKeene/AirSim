@@ -23,7 +23,7 @@ class AirSimDroneEnv(AirSimEnv):
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
-        self.action_space = spaces.Discrete(7)
+        self.action_space = spaces.Box(low=-self.step_length, high=self.step_length, shape=(3,))
         self._setup_flight()
 
         self.image_request = airsim.ImageRequest(
@@ -39,8 +39,7 @@ class AirSimDroneEnv(AirSimEnv):
         self.drone.armDisarm(True)
 
         # Set home position and velocity
-        self.drone.moveToPositionAsync(-0.55265, -31.9786, -19.0225, 10).join()
-        self.drone.moveByVelocityAsync(1, -0.67, -0.8, 5).join()
+        self.drone.moveByVelocityAsync(0, 0, 0, 1).join() # Counteract the drone drifting downwards at the start
 
     def transform_obs(self, responses):
         img1d = np.array(responses[0].image_data_float, dtype=np.float)
@@ -79,17 +78,12 @@ class AirSimDroneEnv(AirSimEnv):
         ).join()
 
     def _compute_reward(self):
-        thresh_dist = 7
-        beta = 1
+        thresh_dist = 100
+        thresh_speed = 5
+        thresh_low_alt = 3
+        thresh_high_alt = -10
 
-        z = -10
-        pts = [
-            np.array([-0.55265, -31.9786, -19.0225]),
-            np.array([48.59735, -63.3286, -60.07256]),
-            np.array([193.5974, -55.0786, -46.32256]),
-            np.array([369.2474, 35.32137, -62.5725]),
-            np.array([541.3474, 143.6714, -32.07256]),
-        ]
+        goal_pt = np.array([80, 0, 5])
 
         quad_pt = np.array(
             list(
@@ -100,36 +94,28 @@ class AirSimDroneEnv(AirSimEnv):
                 )
             )
         )
+        
+        # Calculate Euclidean distance between quad_pt and goal_pt
+        dist = math.sqrt((goal_pt[0] - quad_pt[0])**2 + (goal_pt[1] - quad_pt[1])**2 + (goal_pt[2] - quad_pt[2])**2)            
+        speed = math.sqrt(self.state["velocity"].x_val**2 + self.state["velocity"].y_val**2 + self.state["velocity"].z_val**2)
 
         if self.state["collision"]:
             reward = -100
+        elif self.state["position"].z_val > thresh_low_alt:
+            reward = -10
+        elif self.state["position"].z_val < thresh_high_alt:
+            reward = -10
+        elif dist > thresh_dist:
+            reward = -10
+        elif dist < 2:
+            reward = 100
         else:
-            dist = 10000000
-            for i in range(0, len(pts) - 1):
-                dist = min(
-                    dist,
-                    np.linalg.norm(np.cross((quad_pt - pts[i]), (quad_pt - pts[i + 1])))
-                    / np.linalg.norm(pts[i] - pts[i + 1]),
-                )
-
-            if dist > thresh_dist:
-                reward = -10
-            else:
-                reward_dist = math.exp(-beta * dist) - 0.5
-                reward_speed = (
-                    np.linalg.norm(
-                        [
-                            self.state["velocity"].x_val,
-                            self.state["velocity"].y_val,
-                            self.state["velocity"].z_val,
-                        ]
-                    )
-                    - 0.5
-                )
-                reward = reward_dist + reward_speed
+            reward_dist = (thresh_dist - dist) / thresh_dist  # Rewards closer priximity
+            reward_speed = speed / thresh_speed - 0.25 # Rewards moving fast
+            reward = (reward_dist + reward_speed) / 2 * 10
 
         done = 0
-        if reward <= -10:
+        if reward <= -10 or reward >= 100:
             done = 1
 
         return reward, done
@@ -146,19 +132,4 @@ class AirSimDroneEnv(AirSimEnv):
         return self._get_obs()
 
     def interpret_action(self, action):
-        if action == 0:
-            quad_offset = (self.step_length, 0, 0)
-        elif action == 1:
-            quad_offset = (0, self.step_length, 0)
-        elif action == 2:
-            quad_offset = (0, 0, self.step_length)
-        elif action == 3:
-            quad_offset = (-self.step_length, 0, 0)
-        elif action == 4:
-            quad_offset = (0, -self.step_length, 0)
-        elif action == 5:
-            quad_offset = (0, 0, -self.step_length)
-        else:
-            quad_offset = (0, 0, 0)
-
-        return quad_offset
+        return (action[0], action[1], action[2])

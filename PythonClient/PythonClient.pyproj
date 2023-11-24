@@ -5,14 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>e2049e20-b6dd-474e-8bca-1c8dc54725aa</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>computer_vision\cv_capture.py</StartupFile>
+    <StartupFile>reinforcement_learning\sac_drone.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>PythonClient</Name>
     <RootNamespace>PythonClient</RootNamespace>
-    <InterpreterId>Global|ContinuumAnalytics|Anaconda36-64</InterpreterId>
+    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <InterpreterVersion>
     </InterpreterVersion>
   </PropertyGroup>
@@ -95,6 +95,17 @@
     <Compile Include="multirotor\setup_path.py" />
     <Compile Include="multirotor\survey.py" />
     <Compile Include="multirotor\takeoff.py" />
+    <Compile Include="reinforcement_learning\airgym\envs\airsim_env.py" />
+    <Compile Include="reinforcement_learning\airgym\envs\car_env.py" />
+    <Compile Include="reinforcement_learning\airgym\envs\drone_env.py" />
+    <Compile Include="reinforcement_learning\airgym\envs\__init__.py" />
+    <Compile Include="reinforcement_learning\airgym\__init__.py" />
+    <Compile Include="reinforcement_learning\dqn_car.py" />
+    <Compile Include="reinforcement_learning\sac_drone_saved.py" />
+    <Compile Include="reinforcement_learning\sac_drone.py" />
+    <Compile Include="reinforcement_learning\dqn_drone.py" />
+    <Compile Include="reinforcement_learning\dqn_drone_saved.py" />
+    <Compile Include="reinforcement_learning\setup_path.py" />
     <Compile Include="ros\car_image_raw.py" />
     <Compile Include="ros\car_pose.py" />
     <Compile Include="ros\drone_image_raw.py" />
@@ -108,6 +119,9 @@
     <Folder Include="car\" />
     <Folder Include="computer_vision\" />
     <Folder Include="multirotor\" />
+    <Folder Include="reinforcement_learning\" />
+    <Folder Include="reinforcement_learning\airgym\" />
+    <Folder Include="reinforcement_learning\airgym\envs\" />
     <Folder Include="ros\" />
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +132,17 @@
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda36-64" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="env\">
+      <Id>env</Id>
+      <Version>3.7</Version>
+      <Description>env (Python 3.7)</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

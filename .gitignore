@@ -402,3 +402,9 @@ PythonClient/docs/_build
 
 # clangd generated folder, for e.g. from VSCode clangd extension
 .cache/
+
+# virtual env
+PythonClient/env
+
+# log files
+PythonClient/tb_logs

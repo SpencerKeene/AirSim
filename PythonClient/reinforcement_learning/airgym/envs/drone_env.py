@@ -106,7 +106,7 @@ class AirSimDroneEnv(AirSimEnv):
         elif dist < 2:
             reward = 100
         else:
-            reward_dist = math.exp(-beta * dist) - 0.5  # Rewards closer priximity
+            reward_dist = -4 / (1+ math.exp(-0.1*(dist -45))) + 2  # Rewards closer priximity
             reward_speed = (
                     np.linalg.norm(
                         [

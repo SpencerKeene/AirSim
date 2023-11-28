@@ -16,7 +16,7 @@ env = DummyVecEnv(
             gym.make(
                 "airgym:airsim-drone-sample-v0",
                 ip_address="127.0.0.1",
-                step_length=1,
+                step_length=0.5,
                 image_shape=(84, 84, 1),
             )
         )
@@ -30,7 +30,7 @@ env = VecTransposeImage(env)
 model = DQN(
     "CnnPolicy",
     env,
-    learning_rate=0.000025,
+    learning_rate=0.00025,
     verbose=1,
     batch_size=32,
     train_freq=4,

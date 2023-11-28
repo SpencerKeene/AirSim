@@ -78,12 +78,11 @@ class AirSimDroneEnv(AirSimEnv):
         ).join()
 
     def _compute_reward(self):
-        thresh_dist = 100
-        thresh_speed = 5
+        beta = 0.1
         thresh_low_alt = 3
         thresh_high_alt = -10
 
-        goal_pt = np.array([80, 0, 5])
+        goal_pt = np.array([80, 0, 0])
 
         quad_pt = np.array(
             list(
@@ -97,7 +96,6 @@ class AirSimDroneEnv(AirSimEnv):
         
         # Calculate Euclidean distance between quad_pt and goal_pt
         dist = math.sqrt((goal_pt[0] - quad_pt[0])**2 + (goal_pt[1] - quad_pt[1])**2 + (goal_pt[2] - quad_pt[2])**2)            
-        speed = math.sqrt(self.state["velocity"].x_val**2 + self.state["velocity"].y_val**2 + self.state["velocity"].z_val**2)
 
         if self.state["collision"]:
             reward = -100
@@ -105,18 +103,26 @@ class AirSimDroneEnv(AirSimEnv):
             reward = -10
         elif self.state["position"].z_val < thresh_high_alt:
             reward = -10
-        elif dist > thresh_dist:
-            reward = -10
         elif dist < 2:
             reward = 100
         else:
-            reward_dist = (thresh_dist - dist) / thresh_dist  # Rewards closer priximity
-            reward_speed = speed / thresh_speed - 0.25 # Rewards moving fast
-            reward = (reward_dist + reward_speed) / 2 * 10
+            reward_dist = math.exp(-beta * dist) - 0.5  # Rewards closer priximity
+            reward_speed = (
+                    np.linalg.norm(
+                        [
+                            self.state["velocity"].x_val,
+                            self.state["velocity"].y_val,
+                            self.state["velocity"].z_val,
+                        ]
+                    )
+                    - 0.5
+                )
+            reward = reward_dist + reward_speed
 
         done = 0
         if reward <= -10 or reward >= 100:
             done = 1
+            print(f'dist: {dist} | reward: {reward}')
 
         return reward, done
 

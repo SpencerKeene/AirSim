@@ -16,7 +16,7 @@ env = DummyVecEnv(
             gym.make(
                 "airgym:airsim-drone-sample-v0",
                 ip_address="127.0.0.1",
-                step_length=0.5,
+                step_length=0.25,
                 image_shape=(84, 84, 1),
             )
         )
@@ -30,13 +30,13 @@ env = VecTransposeImage(env)
 model = SAC(
     "CnnPolicy",
     env,
-    learning_rate=0.000025,
+    learning_rate=0.00025,
     verbose=1,
-    batch_size=32,
+    batch_size=64,
     train_freq=4,
-    target_update_interval=500,
-    learning_starts=500,
-    buffer_size=25000,
+    target_update_interval=100,
+    learning_starts=100,
+    buffer_size=1000,
     device="cuda",
     tensorboard_log="./tb_logs/",
 )
@@ -60,7 +60,7 @@ train_time = time.time()
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=2e4,
+    total_timesteps=1e4,
     tb_log_name="sac_airsim_drone_run_" + str(train_time),
     **kwargs
 )

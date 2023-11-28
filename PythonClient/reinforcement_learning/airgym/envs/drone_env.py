@@ -23,7 +23,7 @@ class AirSimDroneEnv(AirSimEnv):
         }
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
-        self.action_space = spaces.Box(low=-self.step_length, high=self.step_length, shape=(3,))
+        self.action_space = spaces.Discrete(7)
         self._setup_flight()
 
         self.image_request = airsim.ImageRequest(
@@ -138,4 +138,19 @@ class AirSimDroneEnv(AirSimEnv):
         return self._get_obs()
 
     def interpret_action(self, action):
-        return (action[0], action[1], action[2])
+        if action == 0:
+            quad_offset = (self.step_length, 0, 0)
+        elif action == 1:
+            quad_offset = (0, self.step_length, 0)
+        elif action == 2:
+            quad_offset = (0, 0, self.step_length)
+        elif action == 3:
+            quad_offset = (-self.step_length, 0, 0)
+        elif action == 4:
+            quad_offset = (0, -self.step_length, 0)
+        elif action == 5:
+            quad_offset = (0, 0, -self.step_length)
+        else:
+            quad_offset = (0, 0, 0)
+
+        return quad_offset

@@ -63,7 +63,7 @@ train_time = time.time()
 
 # Train for a certain number of timesteps
 model.learn(
-    total_timesteps=5e4,
+    total_timesteps=1e5,
     tb_log_name="dqn_airsim_drone_run_" + str(train_time),
     **kwargs
 )

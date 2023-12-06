@@ -24,6 +24,7 @@ class AirSimDroneEnv(AirSimEnv):
 
         self.drone = airsim.MultirotorClient(ip=ip_address)
         self.action_space = spaces.Discrete(7)
+        #self.action_space = spaces.Box(low=-self.step_length, high=self.step_length, shape=(3,)) # this line should be commented out when using DQN
         self._setup_flight()
 
         self.image_request = airsim.ImageRequest(
@@ -106,7 +107,7 @@ class AirSimDroneEnv(AirSimEnv):
         elif dist < 2:
             reward = 100
         else:
-            reward_dist = -4 / (1+ math.exp(-0.1*(dist -45))) + 2  # Rewards closer priximity
+            reward_dist = math.exp(-beta * dist) -0.5 # Rewards closer priximity
             reward_speed = (
                     np.linalg.norm(
                         [
@@ -117,7 +118,7 @@ class AirSimDroneEnv(AirSimEnv):
                     )
                     - 0.5
                 )
-            reward = reward_dist + reward_speed
+            reward = (reward_dist + reward_speed) / 2
 
         done = 0
         if reward <= -10 or reward >= 100:
@@ -138,6 +139,8 @@ class AirSimDroneEnv(AirSimEnv):
         return self._get_obs()
 
     def interpret_action(self, action):
+        #return (action[0], action[1], action[2]) # this line should be commented out when using DQN
+
         if action == 0:
             quad_offset = (self.step_length, 0, 0)
         elif action == 1:
